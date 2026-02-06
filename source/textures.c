@@ -477,6 +477,7 @@ static inline __attribute__((always_inline)) void _glTexImage2D_CubeIMPL(texture
 
 	// Detecting proper read callaback and source bpp
 	switch (format) {
+	case GL_R8:
 	case GL_RED:
 	case GL_ALPHA:
 	case GL_LUMINANCE:
@@ -552,6 +553,9 @@ static inline __attribute__((always_inline)) void _glTexImage2D_CubeIMPL(texture
 	case GL_SRGB8_ALPHA8:
 		gamma_correction = GL_TRUE;
 	case GL_RGBA:
+	case GL_RGBA8:
+	case GL_RGBA4:
+	case GL_RGB5_A1:
 		if (data_bpp == 2) {
 			if (src_format == SCE_GXM_TRANSFER_FORMAT_U1U5U5U5_ABGR)
 				tex_format = SCE_GXM_TEXTURE_FORMAT_U5U5U5U1_RGBA;
@@ -598,6 +602,7 @@ static inline __attribute__((always_inline)) void _glTexImage2D_FlatIMPL(texture
 
 	// Detecting proper read callaback and source bpp
 	switch (format) {
+	case GL_R8:
 	case GL_RED:
 	case GL_ALPHA:
 		switch (type) {
@@ -793,6 +798,8 @@ static inline __attribute__((always_inline)) void _glTexImage2D_FlatIMPL(texture
 	case GL_SRGB8_ALPHA8:
 		gamma_correction = GL_TRUE;
 	case GL_RGBA8:
+	case GL_RGBA4:
+	case GL_RGB5_A1:
 	case GL_RGBA:
 		tex->write_cb = writeRGBA;
 		if (fast_store && data_bpp == 2) {
@@ -819,6 +826,7 @@ static inline __attribute__((always_inline)) void _glTexImage2D_FlatIMPL(texture
 		tex->write_cb = writeR;
 		tex_format = SCE_GXM_TEXTURE_FORMAT_U8_R111;
 		break;
+	case GL_R8:
 	case GL_RED:
 		tex->write_cb = writeR;
 		tex_format = SCE_GXM_TEXTURE_FORMAT_U8_R;
@@ -1654,7 +1662,7 @@ void glPixelStorei(GLenum pname, GLint param) {
 	}
 }
 
-void glGenTextures(GLsizei n, GLuint *res) {
+inline __attribute__((always_inline)) void glGenTextures(GLsizei n, GLuint *res) {
 #ifndef SKIP_ERROR_HANDLING
 	// Error handling
 	if (n < 0) {
@@ -1698,6 +1706,10 @@ void glGenTextures(GLsizei n, GLuint *res) {
 	}
 
 	vgl_log("%s:%d %s: Texture slots limit reached (%d textures hadn't been generated).\n", __FILE__, __LINE__, __func__, n - j);
+}
+
+void glCreateTextures(GLenum target, GLsizei n, GLuint *textures) {
+	glGenTextures(n, textures);
 }
 
 void glBindTexture(GLenum target, GLuint texture) {
@@ -1851,7 +1863,7 @@ void glTexImage2D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
 	}
 }
 
-void glTextureImage2D(GLuint tex_id, GLenum target, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *data) {
+void glTextureImage2D(GLuint tex_id, GLint level, GLint internalFormat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *data) {
 	texture *tex = &texture_slots[tex_id];
 	
 #ifndef SKIP_ERROR_HANDLING
@@ -1882,25 +1894,9 @@ void glTextureImage2D(GLuint tex_id, GLenum target, GLint level, GLint internalF
 		internalFormat = GL_RGBA;
 		break;
 	}
-
-	switch (target) {
-#ifdef HAVE_UNPURE_TEXFORMATS
-	case GL_TEXTURE_1D: // Workaround for 1D textures support
-#endif
-	case GL_TEXTURE_2D:
-		_glTexImage2D_FlatIMPL(tex, level, internalFormat, width, height, format, type, data);
-		break;
-	case GL_TEXTURE_CUBE_MAP_POSITIVE_X:
-	case GL_TEXTURE_CUBE_MAP_POSITIVE_Y:
-	case GL_TEXTURE_CUBE_MAP_POSITIVE_Z:
-	case GL_TEXTURE_CUBE_MAP_NEGATIVE_X:
-	case GL_TEXTURE_CUBE_MAP_NEGATIVE_Y:
-	case GL_TEXTURE_CUBE_MAP_NEGATIVE_Z:
-		_glTexImage2D_CubeIMPL(tex, level, internalFormat, width, height, format, type, data, target - GL_TEXTURE_CUBE_MAP_POSITIVE_X);
-		break;
-	default:
-		SET_GL_ERROR_WITH_VALUE(GL_INVALID_ENUM, target)
-	}
+	
+	// FIXME: Cubemaps support
+	_glTexImage2D_FlatIMPL(tex, level, internalFormat, width, height, format, type, data);
 }
 
 void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *data) {
@@ -1911,9 +1907,9 @@ void glTexImage1D(GLenum target, GLint level, GLint internalFormat, GLsizei widt
 #endif
 }
 
-void glTextureImage1D(GLuint tex_id, GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *data) {
+void glTextureImage1D(GLuint tex_id, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *data) {
 #ifdef HAVE_UNPURE_TEXFORMATS
-	glTextureImage2D(tex_id, GL_TEXTURE_1D, level, internalFormat, width, 1, border, format, type, data);
+	glTextureImage2D(tex_id, level, internalFormat, width, 1, border, format, type, data);
 #else
 	vgl_log("%s:%d: GL_TEXTURE_1D support is disabled. Compile vitaGL with UNPURE_TEXFORMATS=1 to enable it.\n", __FILE__, __LINE__);
 #endif
@@ -1929,10 +1925,11 @@ void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, G
 	_glTexSubImage2D(tex, target, level, xoffset, yoffset, width, height, format, type, pixels);
 }
 
-void glTextureSubImage2D(GLuint tex_id, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels) {
+void glTextureSubImage2D(GLuint tex_id, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels) {
 	texture *tex = &texture_slots[tex_id];
 	
-	_glTexSubImage2D(tex, target, level, xoffset, yoffset, width, height, format, type, pixels);
+	// FIXME: Cubemaps support
+	_glTexSubImage2D(tex, GL_TEXTURE_2D, level, xoffset, yoffset, width, height, format, type, pixels);
 }
 
 void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *pixels) {
@@ -1943,9 +1940,9 @@ void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, G
 #endif
 }
 
-void glTextureSubImage1D(GLuint tex_id, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *pixels) {
+void glTextureSubImage1D(GLuint tex_id, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *pixels) {
 #ifdef HAVE_UNPURE_TEXFORMATS
-	glTextureSubImage2D(tex_id, GL_TEXTURE_1D, level, xoffset, 0, width, 1, format, type, pixels);
+	glTextureSubImage2D(tex_id, level, xoffset, 0, width, 1, format, type, pixels);
 #else
 	vgl_log("%s:%d: GL_TEXTURE_1D support is disabled. Compile vitaGL with UNPURE_TEXFORMATS=1 to enable it.\n", __FILE__, __LINE__);
 #endif
@@ -1961,10 +1958,11 @@ void glCompressedTexImage2D(GLenum target, GLint level, GLenum internalFormat, G
 	_glCompressedTexImage2D(tex, target, level, internalFormat, width, height, border, imageSize, data);
 }
 
-void glCompressedTextureImage2D(GLuint tex_id, GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data) {
+void glCompressedTextureImage2D(GLuint tex_id, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data) {
 	texture *tex = &texture_slots[tex_id];
 	
-	_glCompressedTexImage2D(tex, target, level, internalFormat, width, height, border, imageSize, data);
+	// FIXME: Cubemaps support
+	_glCompressedTexImage2D(tex, GL_TEXTURE_2D, level, internalFormat, width, height, border, imageSize, data);
 }
 
 void glColorTable(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const GLvoid *data) {
@@ -2004,10 +2002,11 @@ void glTexParameteri(GLenum target, GLenum pname, GLint param) {
 	_glTexParameteri(tex, target, pname, param);
 }
 
-void glTextureParameteri(GLuint tex_id, GLenum target, GLenum pname, GLint param) {
+void glTextureParameteri(GLuint tex_id, GLenum pname, GLint param) {
 	texture *tex = &texture_slots[tex_id];
 	
-	_glTexParameteri(tex, target, pname, param);
+	// FIXME: Cubemaps support
+	_glTexParameteri(tex, GL_TEXTURE_2D, pname, param);
 }
 
 void glTexParameterx(GLenum target, GLenum pname, GLfixed param) {
@@ -2020,10 +2019,11 @@ void glTexParameterx(GLenum target, GLenum pname, GLfixed param) {
 	_glTexParameterx(tex, target, pname, param);
 }
 
-void glTextureParameterx(GLuint tex_id, GLenum target, GLenum pname, GLfixed param) {
+void glTextureParameterx(GLuint tex_id, GLenum pname, GLfixed param) {
 	texture *tex = &texture_slots[tex_id];
 	
-	_glTexParameterx(tex, target, pname, param);
+	// FIXME: Cubemaps support
+	_glTexParameterx(tex, GL_TEXTURE_2D, pname, param);
 }
 
 void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
@@ -2036,10 +2036,11 @@ void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
 	_glTexParameteri(tex, target, pname, (GLint)param);
 }
 
-void glTextureParameterf(GLuint tex_id, GLenum target, GLenum pname, GLfloat param) {
+void glTextureParameterf(GLuint tex_id, GLenum pname, GLfloat param) {
 	texture *tex = &texture_slots[tex_id];
 	
-	_glTexParameteri(tex, target, pname, (GLint)param);
+	// FIXME: Cubemaps support
+	_glTexParameteri(tex, GL_TEXTURE_2D, pname, (GLint)param);
 }
 
 void glTexParameteriv(GLenum target, GLenum pname, GLint *param) {
@@ -2052,10 +2053,11 @@ void glTexParameteriv(GLenum target, GLenum pname, GLint *param) {
 	_glTexParameteri(tex, target, pname, param[0]);
 }
 
-void glTextureParameteriv(GLuint tex_id, GLenum target, GLenum pname, GLint *param) {
+void glTextureParameteriv(GLuint tex_id, GLenum pname, GLint *param) {
 	texture *tex = &texture_slots[tex_id];
 	
-	_glTexParameteri(tex, target, pname, param[0]);
+	// FIXME: Cubemaps support
+	_glTexParameteri(tex, GL_TEXTURE_2D, pname, param[0]);
 }
 
 void glActiveTexture(GLenum texture) {
@@ -2161,7 +2163,7 @@ void glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x
 	vgl_free(tmp);
 }
 
-void glCopyTextureImage2D(GLuint tex_id, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border) {
+void glCopyTextureImage2D(GLuint tex_id, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border) {
 #ifndef SKIP_ERROR_HANDLING
 	// Checking if texture is too big for sceGxm
 	if (width > GXM_TEX_MAX_SIZE || height > GXM_TEX_MAX_SIZE || width < 0) {
@@ -2174,7 +2176,7 @@ void glCopyTextureImage2D(GLuint tex_id, GLenum target, GLint level, GLenum inte
 #endif
 	void *tmp = vglMalloc(width * height * 4);
 	glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
-	glTextureImage2D(tex_id, target, level, internalformat, width, height, border, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+	glTextureImage2D(tex_id, level, internalformat, width, height, border, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
 	vgl_free(tmp);
 }
 
@@ -2186,9 +2188,9 @@ void glCopyTexImage1D(GLenum target, GLint level, GLenum internalformat, GLint x
 #endif
 }
 
-void glCopyTextureImage1D(GLuint tex_id, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border) {
+void glCopyTextureImage1D(GLuint tex_id, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border) {
 #ifdef HAVE_UNPURE_TEXFORMATS
-	glCopyTextureImage2D(tex_id, GL_TEXTURE_1D, level, internalformat, x, y, width, 1, border);
+	glCopyTextureImage2D(tex_id, level, internalformat, x, y, width, 1, border);
 #else
 	vgl_log("%s:%d: GL_TEXTURE_1D support is disabled. Compile vitaGL with UNPURE_TEXFORMATS=1 to enable it.\n", __FILE__, __LINE__);
 #endif
@@ -2207,7 +2209,7 @@ void glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffse
 	vgl_free(tmp);
 }
 
-void glCopyTextureSubImage2D(GLuint tex_id, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) {
+void glCopyTextureSubImage2D(GLuint tex_id, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height) {
 #ifndef SKIP_ERROR_HANDLING
 	// Checking if texture is too big for sceGxm
 	if (level < 0) {
@@ -2216,7 +2218,7 @@ void glCopyTextureSubImage2D(GLuint tex_id, GLenum target, GLint level, GLint xo
 #endif
 	void *tmp = vglMalloc(width * height * 4);
 	glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
-	glTextureSubImage2D(tex_id, target, level, xoffset, yoffset, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
+	glTextureSubImage2D(tex_id, level, xoffset, yoffset, width, height, GL_RGBA, GL_UNSIGNED_BYTE, tmp);
 	vgl_free(tmp);
 }
 
@@ -2228,7 +2230,7 @@ void glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLi
 #endif
 }
 
-void glCopyTextureSubImage1D(GLuint tex_id, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width) {
+void glCopyTextureSubImage1D(GLuint tex_id, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width) {
 #ifdef HAVE_UNPURE_TEXFORMATS
 	glCopyTextureSubImage2D(tex_id, GL_TEXTURE_1D, level, xoffset, 0, x, y, width, 1);
 #else

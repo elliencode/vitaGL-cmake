@@ -175,6 +175,8 @@ extern int DISPLAY_HEIGHT; // Display height in pixels
 extern int DISPLAY_STRIDE; // Display stride in pixels
 extern float DISPLAY_WIDTH_FLOAT; // Display width in pixels (float)
 extern float DISPLAY_HEIGHT_FLOAT; // Display height in pixels (float)
+extern int NEW_DISPLAY_WIDTH; // Requested new display width in pixels
+extern int NEW_DISPLAY_HEIGHT; // Requested new display height in pixels
 
 #include <malloc.h>
 #include <stdio.h>
@@ -579,6 +581,7 @@ typedef struct {
 	uint32_t vertex_attrib_offsets[VERTEX_ATTRIBS_NUM];
 	uint32_t vertex_attrib_vbo[VERTEX_ATTRIBS_NUM];
 	uint32_t vertex_attrib_state;
+	uint32_t vertex_attrib_divisor;
 	float *vertex_attrib_value[VERTEX_ATTRIBS_NUM];
 	SceGxmVertexAttribute vertex_attrib_config[VERTEX_ATTRIBS_NUM];
 	SceGxmVertexStream vertex_stream_config[VERTEX_ATTRIBS_NUM];
@@ -1047,7 +1050,7 @@ extern void *color_object;
 extern void *texture_object;
 extern void *index_object;
 
-extern matrix4x4 mvp_matrix; // ModelViewProjection Matrix
+extern matrix4x4 vgl_mvp_matrix; // ModelViewProjection Matrix
 extern matrix4x4 projection_matrix; // Projection Matrix
 extern matrix4x4 modelview_matrix; // ModelView Matrix
 extern matrix4x4 texture_matrix[TEXTURE_COORDS_NUM]; // Texture Matrix
@@ -1093,7 +1096,7 @@ extern GLfloat point_size; // Size of points for fixed function pipeline
 void initGxm(void); // Inits sceGxm
 void initGxmContext(void); // Inits sceGxm context
 void createDisplayRenderTarget(void); // Creates render target for the display
-void initDisplayColorSurfaces(void); // Creates color surfaces for the display
+void initDisplayColorSurfaces(GLboolean is_swap); // Creates color surfaces for the display
 void initDepthStencilBuffer(uint32_t w, uint32_t h, SceGxmDepthStencilSurface *surface, GLboolean has_stencil); // Creates depth and stencil surfaces
 void initDepthStencilSurfaces(void); // Creates depth and stencil surfaces for the display
 void startShaderPatcher(void); // Creates a shader patcher instance
@@ -1129,7 +1132,7 @@ void resetCustomShaders(void); // Resets custom shaders
 float *reserve_attrib_pool(uint8_t count);
 void _vglDrawObjects_CustomShadersIMPL(GLboolean implicit_wvp); // vglDrawObjects implementation for rendering with custom shaders
 GLboolean _glDrawElements_CustomShadersIMPL(uint16_t *idx_buf, GLsizei count, uint32_t top_idx, GLboolean is_short); // glDrawElements implementation for rendering with custom shaders
-GLboolean _glDrawArrays_CustomShadersIMPL(GLint first, GLsizei count); // glDrawArrays implementation for rendering with custom shaders
+GLboolean _glDrawArrays_CustomShadersIMPL(GLint first, GLsizei count, GLboolean instanced); // glDrawArrays implementation for rendering with custom shaders
 void _glMultiDrawArrays_CustomShadersIMPL(SceGxmPrimitiveType gxm_p, uint16_t *idx_buf, const GLint *first, const GLsizei *count, GLint lowest, GLsizei highest, GLsizei drawcount); // glMultiDrawArrays implementation for rendering with custom shaders
 
 /* ffp.c */

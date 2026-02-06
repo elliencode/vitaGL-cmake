@@ -294,6 +294,8 @@ extern "C" {
 #define GL_POLYGON_OFFSET_FACTOR                        0x8038
 #define GL_INTENSITY                                    0x8049
 #define GL_RGB8                                         0x8051
+#define GL_RGBA4                                        0x8056
+#define GL_RGB5_A1                                      0x8057
 #define GL_RGBA8                                        0x8058
 #define GL_TEXTURE_BINDING_2D                           0x8069
 #define GL_VERTEX_ARRAY                                 0x8074
@@ -335,6 +337,7 @@ extern "C" {
 #define GL_MINOR_VERSION                                0x821C
 #define GL_NUM_EXTENSIONS                               0x821D
 #define GL_RG                                           0x8227
+#define GL_R8                                           0x8229
 #define GL_QUERY_TARGET                                 0x82EA
 #define GL_UNSIGNED_SHORT_5_6_5                         0x8363
 #define GL_UNSIGNED_SHORT_1_5_5_5_REV                   0x8366
@@ -414,6 +417,7 @@ extern "C" {
 #define GL_MIRROR_CLAMP_EXT                             0x8742
 #define GL_BUFFER_SIZE                                  0x8764
 #define GL_ATC_RGBA_INTERPOLATED_ALPHA_AMD              0x87EE
+#define GL_NUM_PROGRAM_BINARY_FORMATS                   0x87FE
 #define GL_RGBA16F                                      0x881A
 #define GL_BLEND_EQUATION_ALPHA                         0x883D
 #define GL_POINT_SPRITE                                 0x8861
@@ -513,6 +517,7 @@ extern "C" {
 #define GL_READ_FRAMEBUFFER_BINDING                     0x8CAA
 #define GL_COLOR_ATTACHMENT0                            0x8CE0
 #define GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE           0x8CD0
+#define GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME           0x8CD1
 #define GL_MAX_COLOR_ATTACHMENTS                        0x8CDF
 #define GL_DEPTH_ATTACHMENT                             0x8D00
 #define GL_STENCIL_ATTACHMENT                           0x8D20
@@ -644,17 +649,20 @@ void glColorPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *point
 void glColorTable(GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const GLvoid *data);
 void glCompileShader(GLuint shader);
 void glCompressedTexImage2D(GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data);
-void glCompressedTextureImage2D(GLuint texture, GLenum target, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data);
+void glCompressedTextureImage2D(GLuint texture, GLint level, GLenum internalFormat, GLsizei width, GLsizei height, GLint border, GLsizei imageSize, const void *data);
 void glCopyTexImage1D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
 void glCopyTexImage2D(GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
 void glCopyTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
 void glCopyTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
-void glCopyTextureImage1D(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
-void glCopyTextureImage2D(GLuint texture, GLenum target, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
-void glCopyTextureSubImage1D(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
-void glCopyTextureSubImage2D(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+void glCopyTextureImage1D(GLuint texture, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLint border);
+void glCopyTextureImage2D(GLuint texture, GLint level, GLenum internalformat, GLint x, GLint y, GLsizei width, GLsizei height, GLint border);
+void glCopyTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLint x, GLint y, GLsizei width);
+void glCopyTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLint x, GLint y, GLsizei width, GLsizei height);
+void glCreateBuffers(GLsizei n, GLuint *buffers);
+void glCreateFramebuffers(GLsizei n, GLuint *framebuffers);
 GLuint glCreateProgram(void);
 GLuint glCreateShader(GLenum shaderType);
+void glCreateTextures(GLenum target, GLsizei n, GLuint *textures);
 void glCullFace(GLenum mode);
 void glDeleteBuffers(GLsizei n, const GLuint *gl_buffers);
 void glDeleteFramebuffers(GLsizei n, const GLuint *framebuffers);
@@ -883,14 +891,14 @@ void glTexParameteriv(GLenum target, GLenum pname, GLint *param);
 void glTexParameterx(GLenum target, GLenum pname, GLfixed param);
 void glTexSubImage1D(GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *pixels);
 void glTexSubImage2D(GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
-void glTextureImage1D(GLuint texture, GLenum target, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *data);
-void glTextureImage2D(GLuint texture, GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
-void glTextureParameterf(GLuint texture, GLenum target, GLenum pname, GLfloat param);
-void glTextureParameteri(GLuint texture, GLenum target, GLenum pname, GLint param);
-void glTextureParameteriv(GLuint texture, GLenum target, GLenum pname, GLint *param);
-void glTextureParameterx(GLuint texture, GLenum target, GLenum pname, GLfixed param);
-void glTextureSubImage1D(GLuint texture, GLenum target, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *pixels);
-void glTextureSubImage2D(GLuint texture, GLenum target, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
+void glTextureImage1D(GLuint texture, GLint level, GLint internalFormat, GLsizei width, GLint border, GLenum format, GLenum type, const GLvoid *data);
+void glTextureImage2D(GLuint texture, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *pixels);
+void glTextureParameterf(GLuint texture, GLenum pname, GLfloat param);
+void glTextureParameteri(GLuint texture, GLenum pname, GLint param);
+void glTextureParameteriv(GLuint texture, GLenum pname, GLint *param);
+void glTextureParameterx(GLuint texture, GLenum pname, GLfixed param);
+void glTextureSubImage1D(GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLenum type, const GLvoid *pixels);
+void glTextureSubImage2D(GLuint texture, GLint level, GLint xoffset, GLint yoffset, GLsizei width, GLsizei height, GLenum format, GLenum type, const GLvoid *pixels);
 void glTranslated(GLdouble x, GLdouble y, GLdouble z);
 void glTranslatef(GLfloat x, GLfloat y, GLfloat z);
 void glTranslatex(GLfixed x, GLfixed y, GLfixed z);
@@ -935,6 +943,7 @@ void glVertexAttrib3f(GLuint index, GLfloat v0, GLfloat v1, GLfloat v2);
 void glVertexAttrib3fv(GLuint index, const GLfloat *v);
 void glVertexAttrib4f(GLuint index, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
 void glVertexAttrib4fv(GLuint index, const GLfloat *v);
+void glVertexAttribDivisor(GLuint index, GLuint divisor);
 void glVertexAttribPointer(GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const void *pointer);
 void glVertexPointer(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 void glViewport(GLint x, GLint y, GLsizei width, GLsizei height);
@@ -1146,6 +1155,9 @@ void vglShaderGxpBinary(GLsizei count, const GLuint *handles, const void *binary
 
 // Perform a display buffer swap. Equivalent of eglSwapBuffers but allows support with Common Dialog.
 void vglSwapBuffers(GLboolean has_commondialog);
+
+// Enqueue a request for display resolution change that will happen at next vglSwapBuffers call.
+GLboolean vglSwapResolution(int width, int height);
 
 // Loads the depth buffer of the currently bound renderbuffer into the currently bound GL texture.
 void vglTexImageDepthBuffer(GLenum target);

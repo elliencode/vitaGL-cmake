@@ -81,7 +81,7 @@ uint32_t get_alpha_channel_size(SceGxmColorFormat type) {
  * ------------------------------
  */
 
-void glGenFramebuffers(GLsizei n, GLuint *ids) {
+inline __attribute__((always_inline)) void glGenFramebuffers(GLsizei n, GLuint *ids) {
 	int i, j = 0;
 #ifndef SKIP_ERROR_HANDLING
 	if (n < 0) {
@@ -100,6 +100,10 @@ void glGenFramebuffers(GLsizei n, GLuint *ids) {
 		if (j >= n)
 			break;
 	}
+}
+
+void glCreateFramebuffers(GLsizei n, GLuint *ids) {
+	glGenFramebuffers(n, ids);
 }
 
 void glGenRenderbuffers(GLsizei n, GLuint *ids) {
@@ -228,6 +232,12 @@ void glFramebufferRenderbuffer(GLenum target, GLenum attachment, GLenum renderbu
 		SET_GL_ERROR_WITH_VALUE(GL_INVALID_ENUM, target)
 	}
 
+#ifndef SKIP_ERROR_HANDLING
+	if (!fb) {
+		SET_GL_ERROR(GL_INVALID_OPERATION)
+	}
+#endif
+
 	// Discarding any previously bound hidden depth buffers
 	if (fb->depthbuffer_ptr && fb->is_depth_hidden) {
 #ifndef DEPTH_STENCIL_HACK
@@ -254,6 +264,8 @@ void glNamedFramebufferRenderbuffer(GLuint target, GLenum attachment, GLenum ren
 #ifndef SKIP_ERROR_HANDLING
 	if (renderbuffertarget != GL_RENDERBUFFER) {
 		SET_GL_ERROR_WITH_VALUE(GL_INVALID_ENUM, renderbuffertarget)
+	} else if (target == 0) {
+		SET_GL_ERROR(GL_INVALID_OPERATION);
 	}
 #endif
 
@@ -567,6 +579,9 @@ void glGetFramebufferAttachmentParameteriv(GLenum target, GLenum attachment, GLe
 	switch (attachment) {
 	case GL_COLOR_ATTACHMENT0:
 		switch (pname) {
+		case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
+			*params = (GLint)fb;
+			break;
 		case GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
 			if (!fb || !fb->tex)
 				*params = GL_NONE;
