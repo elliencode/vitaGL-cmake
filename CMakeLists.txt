@@ -131,6 +131,11 @@ elseif (HAVE_GLSL_SUPPORT EQUAL 2)
     target_compile_definitions(vitaGL PRIVATE HAVE_GLSL_TRANSLATOR)
 endif()
 
+option(HAVE_GLSL_TEXTURE_SIZE "Enables experimental automatic handling of textureSize GLSL calls with the GLSL translator." OFF)
+if (HAVE_GLSL_TEXTURE_SIZE)
+    target_compile_definitions(vitaGL PRIVATE HAVE_GLSL_TEXTURE_SIZE)
+endif()
+
 option(HAVE_FFP_SHADER_SUPPORT "Enable support for GLSL 1.20 legacy built-in ffp uniform bindings (eg. gl_ModelViewProjectionMatrix). Causes the shader pipeline to be slightly slower." OFF)
 if (HAVE_FFP_SHADER_SUPPORT)
     target_compile_definitions(vitaGL PRIVATE HAVE_FFP_SHADER_SUPPORT)
@@ -181,6 +186,11 @@ endif()
 option(HAVE_VITA3K_SUPPORT "Disable several features in order to make vitaGL compatible with Vita3K. Requires vitaShaRK compiled with https://github.com/Rinnegatamante/vitaShaRK/blob/master/source/vitashark.c#L24 uncommented." OFF)
 if (HAVE_VITA3K_SUPPORT)
     target_compile_definitions(vitaGL PRIVATE HAVE_VITA3K_SUPPORT DISABLE_HW_ETC1)
+endif()
+
+option(ENABLE_LEGACY_PIPELINE "Enables support for the legacy vglDrawObjects pipeline." OFF)
+if (ENABLE_LEGACY_PIPELINE)
+    target_compile_definitions(vitaGL PRIVATE ENABLE_LEGACY_PIPELINE)
 endif()
 
 # ======================================================================================================================
@@ -242,6 +252,11 @@ endif()
 option(DEPTH_STENCIL_HACK "Make depth and stencil buffers have no memory costs but can cause crashes in some circumstances." OFF)
 if (DEPTH_STENCIL_HACK)
     target_compile_definitions(vitaGL PRIVATE DEPTH_STENCIL_HACK)
+endif()
+
+option(UNIFORMS_SPEEDHACK "Makes uniforms uploading slightly faster but can cause crashes." OFF)
+if (UNIFORMS_SPEEDHACK)
+    target_compile_definitions(vitaGL PRIVATE UNIFORMS_SPEEDHACK)
 endif()
 
 # ======================================================================================================================
