@@ -23,13 +23,6 @@
 
 #include "shared.h"
 
-// Flags available for sceGxmVshInitialize
-static enum {
-	GXM_FLAG_DEFAULT = 0x00,
-	GXM_FLAG_SYSAPP = 0x0A,
-	GXM_FLAG_TEXFORMAT_EXT = 0x10
-} sceGxmVshInitializeFlags;
-
 // FIXME: Since we use our own default uniform buffers circular pool, fragment and vertex buffer rings can likely be reduced in size
 static uint32_t gxm_param_buf_size = SCE_GXM_DEFAULT_PARAMETER_BUFFER_SIZE; // Param buffer size for sceGxm
 static uint32_t gxm_vdm_buf_size = SCE_GXM_DEFAULT_VDM_RING_BUFFER_SIZE; // VDM ring buffer size for sceGxm
@@ -54,7 +47,7 @@ void *gxm_color_surfaces_addr[DISPLAY_MAX_BUFFER_COUNT]; // Display color surfac
 static SceGxmSyncObject *gxm_sync_objects[DISPLAY_MAX_BUFFER_COUNT]; // Display sync objects
 unsigned int gxm_front_buffer_index; // Display front buffer id
 unsigned int gxm_back_buffer_index; // Display back buffer id
-static void (*vgl_display_cb)(void *framebuf) = NULL; // Additional custom caallback used inside display queue callback
+static void (*vgl_display_cb)(void *framebuf) = NULL; // Additional custom callback used inside display queue callback
 
 static void *gxm_shader_patcher_buffer_addr; // Shader PAtcher buffer memblock starting address
 static void *gxm_shader_patcher_vertex_usse_addr; // Shader Patcher vertex USSE memblock starting address
@@ -381,9 +374,12 @@ void initGxm(void) {
 	SceGxmInitializeParams gxm_init_params;
 	vgl_memset(&gxm_init_params, 0, sizeof(SceGxmInitializeParams));
 #ifdef HAVE_VITA3K_SUPPORT // Vita3K lacks sceGxmVshInitialize support, so we use sceGxmInitialize instead and disable a couple of features (HW ETC1 support and sysapp mode support)
-	gxm_init_params.flags = GXM_FLAG_DEFAULT;
+	gxm_init_params.flags = SCE_GXM_INITIALIZE_FLAG_DEFAULT;
 #else
-	gxm_init_params.flags = GXM_FLAG_TEXFORMAT_EXT | (system_app_mode ? GXM_FLAG_SYSAPP : GXM_FLAG_DEFAULT);
+	gxm_init_params.flags = SCE_GXM_INITIALIZE_FLAG_EXTENDED_FORMAT;
+	if (system_app_mode) {
+		gxm_init_params.flags |= (SCE_GXM_INITIALIZE_FLAG_PB_LPDDR | SCE_GXM_INITIALIZE_FLAG_SHARED_SYNC | SCE_GXM_INITIALIZE_FLAG_SHAREDPB_CREATE | SCE_GXM_INITIALIZE_FLAG_SHAREDPB_OPEN);
+	}
 #endif
 	gxm_init_params.displayQueueMaxPendingCount = gxm_display_buffer_count - 1;
 	gxm_init_params.displayQueueCallback = display_queue_callback;

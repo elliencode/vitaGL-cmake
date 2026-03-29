@@ -55,6 +55,10 @@ ifeq ($(HAVE_GLSL_SUPPORT),2)
 CFLAGS += -DHAVE_GLSL_TRANSLATOR
 endif
 
+ifeq ($(HAVE_GLSL_TEXTURE_SIZE),1)
+CFLAGS += -DHAVE_GLSL_TEXTURE_SIZE
+endif
+
 ifeq ($(HAVE_UNFLIPPED_FBOS),1)
 CFLAGS += -DHAVE_UNFLIPPED_FBOS
 endif
@@ -109,6 +113,10 @@ endif
 
 ifeq ($(UNPURE_TEXFORMATS),1)
 CFLAGS += -DHAVE_UNPURE_TEXFORMATS
+endif
+
+ifeq ($(UNIFORMS_SPEEDHACK),1)
+CFLAGS += -DUNIFORMS_SPEEDHACK
 endif
 
 ifeq ($(PHYCONT_ON_DEMAND),1)
@@ -250,6 +258,12 @@ endif
 ifeq ($(DEBUG_GC),1)
 CFLAGS += -DDEBUG_GC
 endif
+
+ifeq ($(ENABLE_LEGACY_PIPELINE),1)
+CFLAGS += -DENABLE_LEGACY_PIPELINE
+endif
+
+
 
 CXXFLAGS  = $(CFLAGS) -fexceptions -std=gnu++11 -Wno-write-strings
 

@@ -30,6 +30,7 @@ In order to build vitaGL use the following command: `make install`.
 |`HAVE_CUSTOM_HEAP=1`| Replaces sceClib heap implementation with custom one (Less efficient but safer).|
 |`HAVE_GLSL_SUPPORT=1`| Enables experimental GLSL to CG auto translation for shader sources with preprocessor pass (Recommended).|
 |`HAVE_GLSL_SUPPORT=2`| Enables experimental GLSL to CG auto translation for shader sources without preprocessor pass.|
+|`HAVE_GLSL_TEXTURE_SIZE=1`| Enables experimental automatic handling of textureSize GLSL calls with the GLSL translator.|
 |`HAVE_FFP_SHADER_SUPPORT=1`| Enables support for GLSL 1.20 legacy built-in ffp uniform bindings (eg. gl_ModelViewProjectionMatrix). Causes the shader pipeline to be slightly slower.|
 |`SOFTFP_ABI=1`| Compiles the library in soft floating point compatibility mode.|
 |`STORE_DEPTH_STENCIL=1`| Makes all framebuffers depth/stencil surfaces to be load/stored on memory. Makes the rendering slower but more compliant with OpenGL standards.|
@@ -40,6 +41,7 @@ In order to build vitaGL use the following command: `make install`.
 |`SAFE_UNIFORMS=1`| Makes some optimizations in the shaders pipeline less efficient but makes uniform location indexing for basic type arrays compliant.|
 |`UNPURE_TEXFORMATS=1`| Enables support for texture dimensions different than 2D (tex2D is still required in shader code).|
 |`HAVE_VITA3K_SUPPORT=1`| Disables several features in order to make vitaGL compatible with Vita3K. Requires vitaShaRK compiled with https://github.com/Rinnegatamante/vitaShaRK/blob/master/source/vitashark.c#L24 uncommented.|
+|`ENABLE_LEGACY_PIPELINE=1`| Enables support for the legacy vglDrawObjects pipeline.|
 ### Hack Flags
 | Flag | Description |
 | --- | --- |
@@ -55,6 +57,7 @@ In order to build vitaGL use the following command: `make install`.
 |`SAMPLERS_SPEEDHACK=1`| Enables faster code for samplers resolution during shaders usage. May cause glitches.|
 |`PRIMITIVES_SPEEDHACK=1`| Makes draw calls more efficient but GL_LINES and GL_POINTS primitives usage may cause glitches.|
 |`DEPTH_STENCIL_HACK=1`| Makes depth and stencil buffers have no memory costs but can cause crashes in some circumstances.|
+|`UNIFORMS_SPEEDHACK=1`| Makes uniforms uploading slightly faster but can cause crashes.|
 ### Misc Flags
 | Flag | Description |
 | --- | --- |

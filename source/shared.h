@@ -27,9 +27,6 @@
 #include <vitasdk.h>
 #include "vitaGL.h"
 
-// Undocumented texture format for ETC1 textures (Thanks to Bythos)
-#define SCE_GXM_TEXTURE_FORMAT_ETC1_RGB 0x84000000
-
 // Internal constants
 #define TEXTURES_NUM 16384 // Available textures
 #define TEXTURE_IMAGE_UNITS_NUM 16 // Available texture image units
@@ -700,6 +697,13 @@ typedef struct {
 } binds_map;
 #endif
 
+#ifdef HAVE_GLSL_TEXTURE_SIZE
+typedef struct {
+	char name[64];
+	float sizes[2];
+} glsl_samplers_info;
+#endif
+
 // Generic shader struct
 typedef struct {
 	GLenum type;
@@ -708,6 +712,10 @@ typedef struct {
 #ifdef HAVE_GLSL_TRANSLATOR
 	GLboolean is_glsl;
 	binds_map semantics;
+#ifdef HAVE_GLSL_TEXTURE_SIZE
+	glsl_samplers_info sized_samplers[SCE_GXM_MAX_TEXTURE_UNITS];
+	uint8_t sized_samplers_num;
+#endif
 #endif
 	int16_t ref_counter;
 	SceGxmShaderPatcherId id;
@@ -1112,7 +1120,7 @@ void change_depth_write(SceGxmDepthWriteMode mode); // Changes current in use de
 void change_depth_func(void); // Changes current in use depth test function
 void invalidate_depth_test(void); // Invalidates depth test state
 void validate_depth_test(void); // Resets original depth test state after invalidation
-void change_stencil_settings(void); // Changes current in use stencil test parameters
+void refresh_stencil_settings(void); // Rrefreshes current in use stencil test setup
 GLboolean change_stencil_config(SceGxmStencilOp *cfg, GLenum new_cfg); // Changes current in use stencil test operation value
 GLboolean change_stencil_func_config(SceGxmStencilFunc *cfg, GLenum new_cfg); // Changes current in use stencil test function value
 void update_alpha_test_settings(void); // Changes current in use alpha test operation value
